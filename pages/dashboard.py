@@ -1,14 +1,13 @@
 import streamlit as st
 import pandas as pd
 
-from utilities.logic_engine import evaluate, compile_program_string
+from utilities.engine import evaluate
 
 def dashboard(state):
     st.title(state.q.get_prompt())
-    st.write()
     display_state_values(state)
-    st.write(compile_program_string(state.q.get_program()))
-    st.write(str(evaluate(compile_program_string(state.q.get_program()))))
+    if st.button("eval"):
+        st.write(str(evaluate(state.q.get_program())))
 
 def onboarding(state):
     st.title("20 Questions, Belief Distribution Edition")
@@ -41,7 +40,7 @@ def onboarding(state):
         pos_inf = False
         top_label =  "What is the maximum value that your question may occupy?"
     if state.q.dtype == 'Numeric':
-        top  = st.number_input(top_label, value=0)
+        top  = st.number_input(top_label, value=100)
     else:
         top = pd.to_datetime(st.date_input(top_label))
 
@@ -50,19 +49,8 @@ def onboarding(state):
     if st.button("Submit"):
         state.page = "Dashboard"
         state.q.initialize_program()
-        st.write(state.page)
 
 
 def display_state_values(state):
-    st.write("Input state:", state.q.get_prompt() or "")
-    # st.write("Slider state:", state.slider)
-    # st.write("Radio state:", state.radio)
-    # st.write("Checkbox state:", state.checkbox)
-    # st.write("Selectbox state:", state.selectbox)
-    # st.write("Multiselect state:", state.multiselect)
-
-    # for i in range(3):
-    #     st.write(f"Value {i}:", state[f"State value {i}"])
-
-    # if st.button("Clear state"):
-    #     state.clear()
+    # st.write("## " + (state.q.get_prompt() or ""))
+    pass

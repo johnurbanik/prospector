@@ -1,13 +1,14 @@
 from enum import Enum, auto
 from numbers import Number
-from typing import Dict, List, Optional, TypeVar, Tuple
+from typing import Any, Dict, List, Optional, TypeVar, Tuple
 
 import numpy as np
 import pandas as pd
 
-import streamlit as st
+from mystic.penalty import quadratic_equality, quadratic_inequality
+from mystic.constraints import impose_sum, with_penalty
 
-T = TypeVar('T')
+import streamlit as st
 
 class Support(Enum):
     BOUNDED = auto()
@@ -20,7 +21,7 @@ class QuestionManager:
                  prompt: Optional[str] = None,
                  support_type: Enum = Support.SEMI,
                  num_bins: int = 20,
-                 program: List[Dict[str, T]] = []
+                 program: Dict[str, Any] = {}
                 ) -> None:
         self.prompt = prompt
         self.support_type = support_type
@@ -39,7 +40,7 @@ class QuestionManager:
             self.domain = (0.0, 100.0)  # TODO: Dumb initialization!
 
 
-    def set_domain(self, bottom: T, top: T, neg_inf: bool = False, pos_inf: bool = False) -> None:
+    def set_domain(self, bottom: Any, top: Any, neg_inf: bool = False, pos_inf: bool = False) -> None:
         num_bins =  self.num_bins
         if pos_inf:
             self.support_type = Support.SEMI
@@ -63,7 +64,6 @@ class QuestionManager:
         else:
             raise TypeError("Only dates and numbers are supported at this time.")
         self.labels = labels
-        print(len(self.labels), self.num_bins)
         self.bins = pd.DataFrame([
             {
                 "from": labels[bin_num],
@@ -72,7 +72,7 @@ class QuestionManager:
             } for bin_num in range(self.num_bins)
         ])
 
-    def get_bin_index_for_val(self, val: T, start: int = 0) -> int:
+    def get_bin_index_for_val(self, val: Any, start: int = 0) -> int:
         df =  self.bins
         bin_num = df.loc[(df['from'] > val) & (df['to'] <= val)].index[0]
         if bin_num:
@@ -93,25 +93,15 @@ class QuestionManager:
         else:
             raise TypeError("Prompt must be a string, representing the question being forecasted.")
 
-    @st.cache
     def get_prompt(self) -> str:
         return self.prompt
 
-    def add_answer_to_program(self, question: str, answer: T, problog_code: str) -> None:
-        self.program.append({
-            "question": question,
-            "answer": answer,
-            "problog": problog_code
-        })
+    def add_answer_to_program(self, penalty_dict) -> None:
+        self.program["penalties"].append(penalty_dict)
 
-    def add_special_clause_to_program(self, rep_dict: Dict[str, T]) -> None:
-        self.program.append(rep_dict)
-
-    @st.cache
-    def get_program(self) -> List[Dict[str, T]]:
+    def get_program(self) -> Dict[str, Any]:
         return self.program
 
-    @st.cache
     def get_support_type(self) -> str:
         if self.support_type == Support.INFINITE:
             return "(-inf,inf)"
@@ -121,18 +111,22 @@ class QuestionManager:
             return "[a,b]"
 
     def initialize_program(self) -> None:
-        # Set up libraries, outcome, and
-        problog = """
-        :- use_module(library(apply)).
-        :- use_module(library(lists)).
-        P::make_bin(J, P).
-        get_prob(B, Out) :- make_bin(B, 1.0).
-        histogram(L) :-
-            findall(X, between(1, %s, X), L),
-            maplist(get_prob, L, S).
-        query(histogram(_)).
-        """ % (self.num_bins)
-        self.add_special_clause_to_program({
-            "function": "setup",
-            "problog": problog
-        })
+        p = {}
+        p["objective"] = lambda x: np.sum(x) - 1
+        p["num_bins"] = self.num_bins
+        p["bounds"] = [(0.0, 1.0)] * self.num_bins
+
+        @with_penalty(quadratic_equality)
+        def sum_to_one(x):
+            return np.sum(x) - 1
+
+        p["penalties"] = [
+            {
+                "note": "Constrain all bins to sum to 1",
+                "penalty": "(bin_0 + bin_1 + bin_2 + bin_3) - (bin_4 + bin_5 + bin_6 + bin_7 + bin_8 + bin_9) = 0"
+            },
+            {
+                "penalty": "bin_0 - bin_2 * 5 = 0"
+            }
+        ]
+        self.program = p

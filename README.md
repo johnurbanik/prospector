@@ -24,7 +24,7 @@ The system design is motivated moreso by work in [Decision Support Systems](http
 
 Further, I leverage [Mystic](https://mystic.readthedocs.io/), a non-convex optimization and uncertainty quantification package that allows for relatively easy specification of constraints for an optimization problem. Mystic has the nice ability to specify 'penalties' in addition to constraints, unlike scipy.optimize. This means that the answers provided by the user can be violated, without having to engineer a very awkward objective function.
 
-I intended to implement an additional pass which allows the user to modify a histogram of the empirical distribution that the 20q section finds most likely (via sliders for each bin), but I did not have time. This could be done relatively easily with streamlit, but I spent a long time thinking about how one could make this type of interaction interact with Problog and did not come up with a great way of translating the changes on the histogram to Problog clauses.
+I intended to implement an additional pass which allows the user to modify a histogram of the empirical distribution that the 20q section finds most likely (via sliders for each bin), but I did not have time. This could be done relatively easily with streamlit, but I spent a long time thinking about how one could make this type of interaction interact with mystic and did not come up with a great way of translating the changes on the histogram to mystic penalties or constraints.
 
 
 
@@ -33,7 +33,7 @@ I intended to implement an additional pass which allows the user to modify a his
     - I spent about 2-3 hours digging into ProbLog thinking that there might be a way to express continuous distributions or probabilistic 'evidence,' as I had wanted to use ProbLog fro a project and on first glance this seemed like a good project to use it on.
 
 - Lack of familiarity:
-    - This was my first time using both Streamlit and
+    - This was my first time using mystic at all, and my first time using Streamlit outside of a toy context. I may not be following best practices. I chose to use mystic instead of a convex optimization package because it seems likely that adding enough penalties will result in a non-convex problem, and uncertainty estimation is a nice additional feature.
 
 - Fixed bins:
     - For now, I use fixed bins for the distribution; it seems unlikely that human reasoning would have intuition that holds well beyond 100 bins. However, in the future I would try to modify the optimization problem to be more dynamic.
