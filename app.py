@@ -13,7 +13,7 @@ def main():
     pages = {
         "Dashboard": dashboard,
         "Initial Questions": onboarding,
-        # "Current Question": question,
+        "New Question": question,
     }
     if not state.q:
         state.q = QuestionManager()

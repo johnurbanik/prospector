@@ -15,6 +15,7 @@ python = "^3.7"
 sklearn = "^0.0"
 streamlit = "^0.66.0"
 mystic = "^0.3.6"
+statsmodels = "^0.12.0"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"

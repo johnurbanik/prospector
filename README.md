@@ -18,13 +18,13 @@ Succinctly, the goal is to develop an application that allows a user to unpack t
 
 Based on additional conversations with Andreas, these forecast questions can have any type of support, but can safely be assumed to be univariate and continuous domain. Questions asked should be explicitly about the 'overall distribution' rather than asking about 'underlying factors' or trying to decompose the question.
 
-In order to keep this system open and general purpose, I have chosen to include questions that directly give information about support and domain, as opposed to trying to use 'automated' methods of understanding the question. This helps with alignment and prevents the system from wandering down paths that are not salient to the user.
+In order to keep this system open and general purpose, I have chosen to onboard the user with questions that directly give information about support and domain, as opposed to trying to use 'automated' methods of understanding the question. This helps with alignment and prevents the system from wandering down paths that are not salient to the user.
 
-The system design is motivated moreso by work in [Decision Support Systems](https://dspace.mit.edu/handle/1721.1/47172) and [Knowledge-Based Systems](https://www.reidgsmith.com/Knowledge-Based_Systems_-_Concepts_Techniques_Examples_08-May-1985.pdf) than modern machine learning.
+The system design is motivated more-so by work in [Decision Support Systems](https://dspace.mit.edu/handle/1721.1/47172) and [Knowledge-Based Systems](https://www.reidgsmith.com/Knowledge-Based_Systems_-_Concepts_Techniques_Examples_08-May-1985.pdf) than modern machine learning.
 
 Further, I leverage [Mystic](https://mystic.readthedocs.io/), a non-convex optimization and uncertainty quantification package that allows for relatively easy specification of constraints for an optimization problem. Mystic has the nice ability to specify 'penalties' in addition to constraints, unlike scipy.optimize. This means that the answers provided by the user can be violated, without having to engineer a very awkward objective function.
 
-I intended to implement an additional pass which allows the user to modify a histogram of the empirical distribution that the 20q section finds most likely (via sliders for each bin), but I did not have time. This could be done relatively easily with streamlit, but I spent a long time thinking about how one could make this type of interaction interact with mystic and did not come up with a great way of translating the changes on the histogram to mystic penalties or constraints.
+I intended to implement an additional pass which allows the user to modify a histogram of the empirical distribution that the 20q section finds most likely (via sliders for each bin), but I did not have time. This could be done relatively easily with Streamlit, but I spent a long time thinking about how one could make this type of interaction interact with mystic and did not come up with a great way of translating the changes on the histogram to mystic penalties or constraints.
 
 
 
@@ -36,7 +36,10 @@ I intended to implement an additional pass which allows the user to modify a his
     - This was my first time using mystic at all, and my first time using Streamlit outside of a toy context. I may not be following best practices. I chose to use mystic instead of a convex optimization package because it seems likely that adding enough penalties will result in a non-convex problem, and uncertainty estimation is a nice additional feature.
 
 - Fixed bins:
-    - For now, I use fixed bins for the distribution; it seems unlikely that human reasoning would have intuition that holds well beyond 100 bins. However, in the future I would try to modify the optimization problem to be more dynamic.
+    - For now, I use fixed bins for the distribution; it seems unlikely that human reasoning would have intuition that holds well beyond 50 bins. However, in the future I would try to modify the optimization problem to be more dynamic and allow arbitrary slicing of the domain.
+
+- Stochastic:
+    - The output of the mystic solver is stochastic and can vary a huge amount if the penalties are not very restrictive. If the application was not meant to be very interactive, a solution might be to take multiple runs, sample from each bin of each run, and produce a kernel density estimate. I was planning to implement the sampling at least, but ran out of time and am just displaying a histogram.
 
 
 #### Sources:

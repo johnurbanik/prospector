@@ -1,56 +1,66 @@
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 
 from utilities.engine import evaluate
+from state_management.question_state import Support
 
 def dashboard(state):
-    st.title(state.q.get_prompt())
-    display_state_values(state)
-    if st.button("eval"):
-        st.write(str(evaluate(state.q.get_program())))
-
-def onboarding(state):
     st.title("20 Questions, Belief Distribution Edition")
+    st.write(f"## {state.q.get_prompt()}")
+    if st.button("Answer additional question"):
+        state.page = "New Question"
+    if st.button("Generate potential PDF"):
+        display_belief_hist(state)
+    st.write("----------------")
+    st.write(f"**Domain:** {state.q.get_domain_str()}")
+    display_answered_questions(state)
 
-    st.write("---")
-
-    prompt = st.text_input("What is your Question?", state.q.prompt or "")
-    state.q.set_prompt(prompt) # For Validation
-
-    support_options = ['(-inf,inf)', '[a, inf)', '[a,b]']
-    support = st.selectbox("What type of support does your question have?", support_options, support_options.index(state.q.get_support_type()))
-
-    dtype_options = ['Numeric', 'Date']
-    state.q.dtype = st.selectbox("Are the values of your forecast domain dates or numbers?", dtype_options, dtype_options.index(state.q.dtype))
-
-    if support == support_options[0]:
-        neg_inf = True
-        bot_label = "What is the value you expect almost all results to be above"
-    else:
-        neg_inf = False
-        bot_label =  "What is the minimum value that your question may occupy?"
-    if state.q.dtype == 'Numeric':
-        bottom  = st.number_input(bot_label, value=0)
-    else:
-        bottom = pd.to_datetime(st.date_input(bot_label))
-    if support_options.index(support) in [0, 1]:
-        pos_inf = True
-        top_label = "What is the value you expect almost all results to be below"
-    else:
-        pos_inf = False
-        top_label =  "What is the maximum value that your question may occupy?"
-    if state.q.dtype == 'Numeric':
-        top  = st.number_input(top_label, value=100)
-    else:
-        top = pd.to_datetime(st.date_input(top_label))
-
-    state.q.set_domain(bottom, top, neg_inf, pos_inf)
-
-    if st.button("Submit"):
-        state.page = "Dashboard"
-        state.q.initialize_program()
-
-
-def display_state_values(state):
-    # st.write("## " + (state.q.get_prompt() or ""))
+def display_answered_questions(state):
+    answers = state.q.get_program()['answers']
+    st.markdown("------------------------")
+    for i, answer in enumerate(answers):
+        # Currently no way in streamlit to do grid layout.
+        st.write("**Question:**")
+        st.write(f"{answer['question']}", unsafe_allow_html=True)
+        st.write(f"**Answer:** {answer['answer']}")
+        if st.button("Remove", key=f"remove_{i}"):
+            state.q.remove_answer(i)
+        st.write("----------------")
     pass
+
+def display_belief_hist(state):
+    # Single run
+    # results, _, _, _, warn_flag  = evaluate(state.q.get_program())
+    # if warn_flag != 0:
+    #     st.warning("The computation was too expensive and may not have converged to a good optimization of the constraints and penalties.")
+    # s = pd.Series(results, index=state.q.get_bin_labels())
+    # fig = go.Figure()
+    # fig.add_trace(go.Bar(
+    #     name='Expected Probability',
+    #     x=s.index, y=s,
+    # ))
+    # In the case that you want multiple runs, use this instead.
+    runs = []
+    for _ in range(10):
+        results, _, _, _, warn_flag  = evaluate(state.q.get_program())
+        if warn_flag != 0:
+            st.warning("The computation was too expensive and may not have converged to a good optimization of the constraints and penalties.")
+        s = pd.Series(results, index=state.q.get_bin_labels())
+        runs.append(s)
+    df = pd.concat(runs, axis=1)
+    stats = pd.concat([df.mean(axis=1), df.quantile([0.10, 0.90], axis=1).T], axis=1)
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name='Expected Probability',
+        x=stats.index, y=stats.iloc[:, 0],
+        error_y=dict(
+            type='data',
+            array=stats.iloc[:, 2] - stats.iloc[:, 0],
+            arrayminus=stats.iloc[:, 0] - stats.iloc[:, 1]
+        )
+    ))
+    fig.update_layout(xaxis_tickangle=45)
+    st.plotly_chart(fig)
+    pass
+
