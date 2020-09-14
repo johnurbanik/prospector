@@ -4,14 +4,15 @@ import plotly.graph_objects as go
 import streamlit as st
 from streamlit.hashing import _CodeHasher
 
-from question_library.basic_questions import MoreLikely, MostLikely
+from question_library.basic_questions import *
 from state_management.question_state import Support
 from utilities.engine import evaluate
 from app import _SessionState
 
 QUESTION_TYPES = {
     MoreLikely.q_type: MoreLikely,
-    MostLikely.q_type: MostLikely
+    MostLikely.q_type: MostLikely,
+    TimesLikely.q_type: TimesLikely
 }
 
 RNG = np.random.default_rng()

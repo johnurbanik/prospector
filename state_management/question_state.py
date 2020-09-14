@@ -104,13 +104,16 @@ class QuestionManager:
         idx = self.bins["rel_answer_count"].idxmin()
         return idx
 
-    def bin_label(self, index: int, how: str = "center") -> Any:
-        if how == "center":
+    def bin_label(self, index: int, how: str = "both") -> Any:
+        if how == "both":
+            return self.get_bin_labels()[index]
+        elif how == "center":
             if self.dtype == "Date":
                 temp = self.bins.iloc[index]
                 val =  temp["from"] + (temp["to"] - temp["from"]) / 2
+                return val.strftime("%Y-%m-%d")
             else:
-                val =  self.bins.iloc[index][["from", "to"]].mean()
+                return self.bins.iloc[index][["from", "to"]].mean()
         elif how == "left":
             val = self.bins["from"][index]
         else:

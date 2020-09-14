@@ -8,7 +8,7 @@ from state_management.question_state import Support
 def dashboard(state):
     st.title("20 Questions, Belief Distribution Edition")
     st.write(f"## {state.q.get_prompt()}")
-    if st.button("Answer additional question"):
+    if st.button("Answer a question"):
         state.page = "New Question"
     if st.button("Generate potential PDF"):
         display_belief_hist(state)

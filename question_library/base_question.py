@@ -25,6 +25,7 @@ class BaseQuestion(ABC):
         self.question = None
         self.answer_type = AnswerType.FLOAT
         self.answer = None
+        self.default = None
         self.bins = []
         self.penalty = ""
         self.is_range = False
@@ -47,16 +48,16 @@ class BaseQuestion(ABC):
             return [(
                 st.selectbox,
                 {
-                    "options": ("A", "B", "A and B are equal"),
+                    "options": ("a", "b", "a and b are equal"),
                     "index": 0,
                 }
             )]
         elif self.answer_type == AnswerType.FLOAT:
-            return [(st.number_input, {"value": 0.0})]
+            return [(st.number_input, {"value": self.default or 0.0})]
         elif self.answer_type == AnswerType.FLOAT_RANGE:
             return [(st.number_input, {"value": 0.0}), (st.number_input, {"value": 100.0})]
         elif self.answer_type == AnswerType.INT:
-            return [(st.number_input, {"value": 1})]
+            return [(st.number_input, {"value": self.default or 1})]
         elif self.answer_type == AnswerType.INT_RANGE:
             return [(st.number_input, {"value": 0}), (st.number_input, {"value": 1})]
         elif self.answer_type == AnswerType.DATE:

@@ -14,12 +14,12 @@ class MoreLikely(BaseQuestion):
         self.answer_type = AnswerType.COMPARATOR
 
     def set_question(self, a, b):
-        self.question = f"Which is more likely:<ol type=\"a\"><li>{a}</li><li>{b}</li></ol>"
+        self.question = f"In which interval does the outcome more likely lie?<ol type=\"a\"><li>{a}</li><li>{b}</li></ol>"
 
     def set_penalty(self):
-        if self.answer == "A":
+        if self.answer == "a":
             operator =  ">"
-        elif self.answer == "B":
+        elif self.answer == "b":
             operator = "<"
         else:
             operator = "="
@@ -49,3 +49,16 @@ class MostLikely(BaseQuestion):
             pen += f"{bin_string(best_bin)} - {bin_string(a_bin)} >= 0"
             pen += "\n"
         self.penalty = pen
+
+class TimesLikely(BaseQuestion):
+    q_type = 3
+    def __init__(self, manager):
+        super().__init__(manager)
+        self.default = 1.0
+        self.answer_type = AnswerType.FLOAT
+
+    def set_question(self, a, b):
+        self.question = f"How many times more likely is it that the outcome is in the interval {a} than {b}?"
+
+    def set_penalty(self):
+        self.penalty = f"{bin_string(self.bins[0])} - {bin_string(self.bins[1])} * {self.answer} = 0"
