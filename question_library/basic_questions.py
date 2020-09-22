@@ -46,7 +46,7 @@ class MostLikely(BaseQuestion):
         other_bins = set(range(len(self.manager.bins))) - set([best_bin])
         pen = ""
         for a_bin in other_bins:
-            pen += f"{bin_string(best_bin)} - {bin_string(a_bin)} >= 0"
+            pen += f"{bin_string(best_bin)} >= {bin_string(a_bin)}"
             pen += "\n"
         self.penalty = pen
 

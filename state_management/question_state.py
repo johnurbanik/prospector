@@ -18,7 +18,7 @@ class QuestionManager:
     def __init__(self,
                  prompt: Optional[str] = None,
                  support_type: Enum = Support.BOUNDED,
-                 num_bins: int = 20,
+                 num_bins: int = 50,
                  program: Dict[str, Any] = {}
                 ) -> None:
         self.prompt = prompt
@@ -151,9 +151,24 @@ class QuestionManager:
         else:
             return "[a,b]"
 
+    def add_bin_pdf_constraint(self) -> None:
+        constraint_str = ""
+        for bin in range(self.num_bins):
+            bin_str = " + ".join([f"bin_{i}" for i in range(self.num_bins) if i != bin])
+            constraint_str += f"bin_{bin} = 1 - ({bin_str})\n"
+            break
+
+        self.program["constraints"] = [
+            {
+                "constraint": constraint_str,
+                "name": "bin_sum_1",
+                "info": "Make sure all bins sum to 1"
+            }
+        ]
+
     def initialize_program(self) -> None:
         p = {}
-        p["objective"] = lambda x: np.sum(x) - 1
+        p["objective"] = lambda x: np.sum(x * np.where(np.array(x)>0, np.log(x), 0))  # Minimize negative entropy, i.e. max-ent
         p["num_bins"] = self.num_bins
         p["bounds"] = [(0.0, 1.0)] * self.num_bins
         p["answers"] = [
@@ -174,6 +189,7 @@ class QuestionManager:
             # }
         ]
         self.program = p
+        self.add_bin_pdf_constraint()
 
     def get_bin_labels(self) -> List[str]:
         def bin_label(bin):

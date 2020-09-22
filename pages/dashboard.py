@@ -31,36 +31,41 @@ def display_answered_questions(state):
 
 def display_belief_hist(state):
     # Single run
-    # results, _, _, _, warn_flag  = evaluate(state.q.get_program())
-    # if warn_flag != 0:
-    #     st.warning("The computation was too expensive and may not have converged to a good optimization of the constraints and penalties.")
-    # s = pd.Series(results, index=state.q.get_bin_labels())
-    # fig = go.Figure()
-    # fig.add_trace(go.Bar(
-    #     name='Expected Probability',
-    #     x=s.index, y=s,
-    # ))
-    # In the case that you want multiple runs, use this instead.
-    runs = []
-    for _ in range(10):
-        results, _, _, _, warn_flag  = evaluate(state.q.get_program())
-        if warn_flag != 0:
-            st.warning("The computation was too expensive and may not have converged to a good optimization of the constraints and penalties.")
-        s = pd.Series(results, index=state.q.get_bin_labels())
-        runs.append(s)
-    df = pd.concat(runs, axis=1)
-    stats = pd.concat([df.mean(axis=1), df.quantile([0.10, 0.90], axis=1).T], axis=1)
+    res  = evaluate(state.q.get_program())
+    results = res[0]
+    s = pd.Series(results, index=state.q.get_bin_labels())
+    st.write(s)
+    st.write(s.sum())
+    st.write(res[1])
     fig = go.Figure()
     fig.add_trace(go.Bar(
         name='Expected Probability',
-        x=stats.index, y=stats.iloc[:, 0],
-        error_y=dict(
-            type='data',
-            array=stats.iloc[:, 2] - stats.iloc[:, 0],
-            arrayminus=stats.iloc[:, 0] - stats.iloc[:, 1]
-        )
+        x=s.index, y=s,
     ))
+    # In the case that you want multiple runs, use this instead.
+    # runs = []
+    # for _ in range(10):
+    #     results, _, _, _, warn_flag  = evaluate(state.q.get_program())
+    #     if warn_flag != 0:
+    #         st.warning("The computation was too expensive and may not have converged to a good optimization of the constraints and penalties.")
+    #     s = pd.Series(results, index=state.q.get_bin_labels())
+    #     runs.append(s)
+    # df = pd.concat(runs, axis=1)
+    # stats = pd.concat([df.mean(axis=1), df.quantile([0.10, 0.90], axis=1).T], axis=1)
+    # st.write(stats)
+    # st.write(df.sum(axis=0))
+    # fig = go.Figure()
+    # fig.add_trace(go.Bar(
+    #     name='Expected Probability',
+    #     x=stats.index, y=stats.iloc[:, 0],
+    #     error_y=dict(
+    #         type='data',
+    #         array=stats.iloc[:, 2] - stats.iloc[:, 0],
+    #         arrayminus=stats.iloc[:, 0] - stats.iloc[:, 1]
+    #     )
+    # ))
     fig.update_layout(xaxis_tickangle=45)
     st.plotly_chart(fig)
+
     pass
 
