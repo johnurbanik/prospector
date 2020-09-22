@@ -4,7 +4,12 @@ import plotly.graph_objects as go
 import streamlit as st
 from streamlit.hashing import _CodeHasher
 
-from question_library.basic_questions import *
+from question_library.basic_questions import (
+    MoreLikely,
+    MostLikely,
+    TimesLikely,
+    MultiBinPDF
+)
 from state_management.question_state import Support
 from utilities.engine import evaluate
 from app import _SessionState
@@ -12,7 +17,8 @@ from app import _SessionState
 QUESTION_TYPES = {
     MoreLikely.q_type: MoreLikely,
     MostLikely.q_type: MostLikely,
-    TimesLikely.q_type: TimesLikely
+    TimesLikely.q_type: TimesLikely,
+    MultiBinPDF.q_type: MultiBinPDF
 }
 
 RNG = np.random.default_rng()
@@ -34,8 +40,8 @@ def gen_question(question):
     return question
 
 @st.cache
-def cacheable_second_bin(bins, first_bin, q_id):
-        return RNG.choice(list(set(range(bins)) - set([first_bin])))
+def cacheable_second_bin(bins, first_bin, q_id): # ID only there for caching
+        return int(RNG.choice(list(set(range(bins)) - set([first_bin]))))
 
 def question(state):
     q =  state.q
@@ -51,10 +57,21 @@ def question(state):
         first_label = q.bin_label(first_bin)
         question.set_question(first_label)
         question.set_bins([[first_bin]])
+    elif question.q_type == MultiBinPDF.q_type:
+        second_bin = cacheable_second_bin(state.q.num_bins, first_bin, id(question))
+        low_bin = min(first_bin, second_bin)
+        high_bin = max(first_bin, second_bin)
+        range_str =  q.format_range(
+            q.bin_label(low_bin, how='left'),
+            q.bin_label(high_bin, how='right'),
+            sep='and'
+        )
+        question.set_question(range_str, None)
+        question.set_bins([list(range(low_bin, high_bin + 1))])
     else:
         # TODO: Avoid duplicate questions
         # used_bins = state.q.get_answer_types()[q_type]
-        second_bin = int(cacheable_second_bin(state.q.num_bins, first_bin, id(question)))
+        second_bin = cacheable_second_bin(state.q.num_bins, first_bin, id(question))
         first_label, second_label = (q.bin_label(first_bin), q.bin_label(second_bin))
         question.set_question(first_label, second_label)
         question.set_bins([[first_bin], [second_bin]])
@@ -64,5 +81,6 @@ def question(state):
         st.write(question.question, unsafe_allow_html=True)
         question.set_answer(field[0]("", **field[1]))
     if st.button("Submit"):
+        st.write(question.export())
         q.add_answer(question.export())
         state.page = "Dashboard"

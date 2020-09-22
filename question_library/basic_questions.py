@@ -61,4 +61,17 @@ class TimesLikely(BaseQuestion):
         self.question = f"How many times more likely is it that the outcome is in the interval {a} than {b}?"
 
     def set_penalty(self):
-        self.penalty = f"{bin_string(self.bins[0])} - {bin_string(self.bins[1])} * {self.answer} = 0"
+        self.penalty = f"{bin_string(self.bins[0])} = {bin_string(self.bins[1])} * {self.answer}"
+
+class MultiBinPDF(BaseQuestion):
+    q_type = 4
+    def __init__(self, manager):
+        super().__init__(manager)
+        self.default = 0.0
+        self.answer_type = AnswerType.FLOAT
+
+    def set_question(self, range_str, *args):
+        self.question = f"What is the probability that the outcome is between {range_str}?"
+
+    def set_penalty(self):
+        self.penalty = f"{bin_string(self.bins[0])} = {self.answer}"

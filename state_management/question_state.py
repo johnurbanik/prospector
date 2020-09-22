@@ -75,7 +75,7 @@ class QuestionManager:
         a, b = self.domain
         return self.format_range(a, b)
 
-    def format_range(self, a, b):
+    def format_range(self, a, b, sep='-'):
         if isinstance(a, pd.Timestamp):
             a = a.strftime("%Y-%m-%d")
             b = b.strftime("%Y-%m-%d")
@@ -83,7 +83,7 @@ class QuestionManager:
             a = "-∞"
         if b == np.Inf:
             b = "∞"
-        return f"{a} - {b}"
+        return f"{a} {sep} {b}"
 
     def get_bin_index_for_val(self, val: Any, start: int = 0) -> int:
         df =  self.bins
@@ -192,7 +192,7 @@ class QuestionManager:
         self.add_bin_pdf_constraint()
 
     def get_bin_labels(self) -> List[str]:
-        def bin_label(bin):
+        def bin_str(bin):
             a = bin["from"]
             b = bin["to"]
             if a == -np.Inf:
@@ -211,7 +211,7 @@ class QuestionManager:
             bins = self.bins[['from','to']].apply(lambda x: x.dt.strftime("%Y-%m-%d"))
         else:
             bins  = self.bins[['from','to']].apply(lambda x: signif(x, 3))
-        return bins.apply(bin_label, axis=1)
+        return bins.apply(bin_str, axis=1)
 
     def get_answer_types(self) -> Dict[int, List[int]]:
         res = defaultdict(set)
