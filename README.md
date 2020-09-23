@@ -22,11 +22,6 @@ In order to keep this system open and general purpose, I have chosen to onboard 
 
 The system design is motivated more-so by work in [Decision Support Systems](https://dspace.mit.edu/handle/1721.1/47172) and [Knowledge-Based Systems](https://www.reidgsmith.com/Knowledge-Based_Systems_-_Concepts_Techniques_Examples_08-May-1985.pdf) than modern machine learning.
 
-Further, I leverage [Mystic](https://mystic.readthedocs.io/), a non-convex optimization and uncertainty quantification package that allows for relatively easy specification of constraints for an optimization problem. Mystic has the nice ability to specify 'penalties' in addition to constraints, unlike scipy.optimize. This means that the answers provided by the user can be violated, without having to engineer a very awkward objective function.
-
-I intended to implement an additional pass which allows the user to modify a histogram of the empirical distribution that the 20q section finds most likely (via sliders for each bin), but I did not have time. This could be done relatively easily with Streamlit, but I spent a long time thinking about how one could make this type of interaction interact with mystic and did not come up with a great way of translating the changes on the histogram to mystic penalties or constraints.
-
-
 
 #### Caveats / Limitations:
 - Wasted time on ProbLog, mystic
@@ -38,6 +33,9 @@ I intended to implement an additional pass which allows the user to modify a his
 - The question set is pretty limited, and the way that questions are chosen is very stupid. A method to allow a user to specify their questions (i.e. chose ranges and comparisons) is much needed.
 
 - I would like to add a degree of belief to answers, which could factor into the penalty. Additionally, the penalties should probably be normalized in some smarter fashion as certain terms can be dominant. Quadratic penalties are useful for keeping things close to the 'constraints' but make weighting harder.
+
+- I intended to implement an additional pass which allows the user to modify a histogram of the empirical distribution that the 20q section finds most likely (via sliders for each bin), but I did not have time. This could be done relatively easily with Streamlit.
+
 
 
 #### Sources:
