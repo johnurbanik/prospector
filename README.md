@@ -1,6 +1,6 @@
 # twenty-q-dist
 ## Ought.org Take Home: 20Q on Belief Distributions
-## Implemented by [John Urbanik](https://github.com/johnurbanik) solely on 9/11/20.
+## Implemented by [John Urbanik](https://github.com/johnurbanik).
 
 Assuming you have poetry, the package can be run by
 ```bash
@@ -12,7 +12,7 @@ streamlit run app.py --server.port 3030
 
 ### Motivation / Design Overview
 
-This repository is my 1-day attempt at building a baseline solution for the problem posed by [Andreas Stuhlmüller](https://gist.github.com/stuhlmueller/2e3d6a5af0e4b9dec74d2f2c1f6c8a2d).
+This repository is my 2-day attempt at building a baseline solution for the problem posed by [Andreas Stuhlmüller](https://gist.github.com/stuhlmueller/2e3d6a5af0e4b9dec74d2f2c1f6c8a2d).
 
 Succinctly, the goal is to develop an application that allows a user to unpack their own implicit belief distribution about a given 'forecast question.'
 
@@ -29,17 +29,15 @@ I intended to implement an additional pass which allows the user to modify a his
 
 
 #### Caveats / Limitations:
-- Wasted time on ProbLog
-    - I spent about 2-3 hours digging into ProbLog thinking that there might be a way to express continuous distributions or probabilistic 'evidence,' as I had wanted to use ProbLog fro a project and on first glance this seemed like a good project to use it on.
-
-- Lack of familiarity:
-    - This was my first time using mystic at all, and my first time using Streamlit outside of a toy context. I may not be following best practices. I chose to use mystic instead of a convex optimization package because it seems likely that adding enough penalties will result in a non-convex problem, and uncertainty estimation is a nice additional feature.
+- Wasted time on ProbLog, mystic
+    - I spent about 2-3 hours digging into ProbLog thinking that there might be a way to express continuous distributions or probabilistic 'evidence,' as I had wanted to use ProbLog fro a project and on first glance this seemed like a good project to use it on. I similarly dove into mystic, thinking that the capibilities were substantially more rich than scipy.optimize. While it is better for global optimization, the performance is very bad. It is still not the case that I'm using any constraints that are non-linear, and lagrangian/penalty methods should be sufficient.
 
 - Fixed bins:
     - For now, I use fixed bins for the distribution; it seems unlikely that human reasoning would have intuition that holds well beyond 50 bins. However, in the future I would try to modify the optimization problem to be more dynamic and allow arbitrary slicing of the domain.
 
-- Stochastic:
-    - The output of the mystic solver is stochastic and can vary a huge amount if the penalties are not very restrictive. If the application was not meant to be very interactive, a solution might be to take multiple runs, sample from each bin of each run, and produce a kernel density estimate. I was planning to implement the sampling at least, but ran out of time and am just displaying a histogram.
+- The question set is pretty limited, and the way that questions are chosen is very stupid. A method to allow a user to specify their questions (i.e. chose ranges and comparisons) is much needed.
+
+- I would like to add a degree of belief to answers, which could factor into the penalty. Additionally, the penalties should probably be normalized in some smarter fashion as certain terms can be dominant. Quadratic penalties are useful for keeping things close to the 'constraints' but make weighting harder.
 
 
 #### Sources:
