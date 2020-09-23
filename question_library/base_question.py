@@ -28,6 +28,7 @@ class BaseQuestion(ABC):
         self.default = None
         self.bins = []
         self.penalty = ""
+        self.np_pen = None
         self.is_range = False
         self.invalid = False
 
@@ -41,6 +42,7 @@ class BaseQuestion(ABC):
             "answer": self.answer,
             "bins": self.bins,
             "penalty": self.penalty,
+            "np_pen": self.np_pen
         }
 
     def answer_fields(self) -> List[Tuple[Any, Dict[str, Any]]]:
@@ -83,8 +85,12 @@ class BaseQuestion(ABC):
     def set_answer(self, answer: Any) -> None:
         self.answer = answer
         self.set_penalty()
+        self.set_np_penalty()
 
     def set_penalty(self) -> None:
+        pass
+
+    def set_np_penalty(self) -> None:
         pass
 
 

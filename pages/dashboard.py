@@ -32,11 +32,8 @@ def display_answered_questions(state):
 def display_belief_hist(state):
     # Single run
     res  = evaluate(state.q.get_program())
-    results = res[0]
+    results = res.x
     s = pd.Series(results, index=state.q.get_bin_labels())
-    st.write(s)
-    st.write(s.sum())
-    st.write(res[1])
     fig = go.Figure()
     fig.add_trace(go.Bar(
         name='Expected Probability',

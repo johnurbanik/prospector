@@ -1,5 +1,8 @@
 from collections.abc import Sequence
+import numpy as np
+
 from question_library.base_question import BaseQuestion, AnswerType
+from utilities.np_helper import expr_gen
 
 def bin_string(bin_or_list_of_bins):
     if isinstance(bin_or_list_of_bins, Sequence):
@@ -27,6 +30,13 @@ class MoreLikely(BaseQuestion):
         rbs = bin_string(self.bins[1])
         self.penalty =  f"({lbs}) - ({rbs}) {operator} 0"
 
+    def set_np_penalty(self):
+        if self.answer == "a":
+            self.np_pen = lambda x: np.clip(expr_gen(x, self.bins[0][0]) - expr_gen(x,self.bins[1][0]), 0, None) ** 2
+        elif self.answer == "b":
+            self.np_pen = lambda x: np.clip(expr_gen(x, self.bins[1][0]) - expr_gen(x,self.bins[0][0]), 0, None) ** 2
+        else:
+            self.np_pen = lambda x: (expr_gen(x, self.bins[0][0]) - expr_gen(x,self.bins[1][0])) ** 2
 
 class MostLikely(BaseQuestion):
     q_type =  2
@@ -50,6 +60,10 @@ class MostLikely(BaseQuestion):
             pen += "\n"
         self.penalty = pen
 
+    def set_np_penalty(self):
+        best_bin = self.manager.get_bin_index_for_val(self.answer)
+        self.np_pen = lambda x: np.sum(np.clip(x - x[best_bin], 0, None))**2
+
 class TimesLikely(BaseQuestion):
     q_type = 3
     def __init__(self, manager):
@@ -63,6 +77,9 @@ class TimesLikely(BaseQuestion):
     def set_penalty(self):
         self.penalty = f"{bin_string(self.bins[0])} = {bin_string(self.bins[1])} * {self.answer}"
 
+    def set_np_penalty(self):
+        self.np_pen = lambda x: (expr_gen(x, self.bins[0][0]) - expr_gen(x,self.bins[1][0]) * self.answer)**2
+
 class MultiBinPDF(BaseQuestion):
     q_type = 4
     def __init__(self, manager):
@@ -75,3 +92,6 @@ class MultiBinPDF(BaseQuestion):
 
     def set_penalty(self):
         self.penalty = f"{bin_string(self.bins[0])} = {self.answer}"
+
+    def set_np_penalty(self):
+        self.np_pen = lambda x: (expr_gen(x, self.bins[0][0], self.bins[0][-1]) - self.answer) ** 2
